@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 # --- Qiskit Imports ---
 print("Checkpoint 1: Importing Qiskit libraries...")
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit import QuantumCircuit, QuanutumRegister, ClassicalRegister
 from qiskit_aer import AerSimulator
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
@@ -76,7 +76,7 @@ def run_local_simulation(message: str, shots: int = 1024):
 def run_ibm_simulation(message: str, shots: int = 1024):
     print("--- Running IBM Simulation ---")
     try:
-        IBM_QUANTUM_TOKEN = os.getenv("IBM_QUANTUM_TOKEN", "T_g8mtApJFwLh5zlJ5GMWWhqfVai3K23bfFZ9rqQO0Bn")
+        IBM_QUANTUM_TOKEN = os.getenv("IBM_QUANTUM_TOKEN", "vEd8PIzjuOXMoWim0peBXsgwIT3fKpLW-F4u5Hq2clTb")
         IBM_INSTANCE = os.getenv("IBM_INSTANCE", "crn:v1:bluemix:public:quantum-computing:us-east:a/c963c3666fc146bfa5a8b0cf1fc2d38a:d45e06b8-e294-4181-97c2-6d204a4bcbbd::")
 
         service = QiskitRuntimeService(channel="ibm_quantum_platform",

@@ -11,8 +11,8 @@ export default function NavigationPage() {
   };
   
   const handleApplicationPhase = () => {
-    // Navigate to simulator with application mode
-    navigate('/simulator?mode=application');
+    // Navigate to the new satellite-ground communication simulator
+    navigate('/home');
   };
   
   const handleBackToLanding = () => {

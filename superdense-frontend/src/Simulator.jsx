@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Particles from './Particles';
+import config from './config';
 import './Simulator.css';
 
 const MESSAGES = ['00', '01', '10', '11'];
@@ -29,7 +30,7 @@ export default function Simulator() {
     // Local simulation
     try {
       console.log('Fetching local simulation...');
-      const localResponse = await fetch('http://127.0.0.1:5000/api/run_simulation', {
+      const localResponse = await fetch(`${config.testing.baseURL}${config.testing.endpoints.runSimulation}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,7 +61,7 @@ export default function Simulator() {
     // IBM simulation
     try {
       console.log('Fetching IBM simulation...');
-      const ibmResponse = await fetch('http://127.0.0.1:5000/api/run_simulation', {
+      const ibmResponse = await fetch(`${config.testing.baseURL}${config.testing.endpoints.runSimulation}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
