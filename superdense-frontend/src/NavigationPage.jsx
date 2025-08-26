@@ -6,11 +6,13 @@ export default function NavigationPage() {
   const navigate = useNavigate();
   
   const handleTestingPhase = () => {
-    navigate('/simulator');
+    // Navigate to simulator with testing mode
+    navigate('/simulator?mode=testing');
   };
   
   const handleApplicationPhase = () => {
-    navigate('/simulator');
+    // Navigate to simulator with application mode
+    navigate('/simulator?mode=application');
   };
   
   const handleBackToLanding = () => {
