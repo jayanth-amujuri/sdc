@@ -1,11 +1,12 @@
 # ====================================================
 # Flask API for Satellite-to-Ground BB84 QKD + Superdense Coding
+# Fully corrected with non-GUI Matplotlib backend and accurate Bloch Spheres
 # ====================================================
+
 import io
 import random
 import base64
 import numpy as np
-import matplotlib.pyplot as plt
 import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -14,6 +15,11 @@ from qiskit_aer import AerSimulator
 from qiskit.quantum_info import Statevector, DensityMatrix, partial_trace
 from qiskit.visualization import plot_histogram
 from qiskit.visualization.bloch import Bloch
+
+# ---------------- Matplotlib backend fix ----------------
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,21 +32,27 @@ def fig_to_base64(fig):
     buf = io.BytesIO()
     fig.savefig(buf, format="png", bbox_inches="tight")
     buf.seek(0)
-    return base64.b64encode(buf.read()).decode("utf-8")
+    img_str = base64.b64encode(buf.read()).decode("utf-8")
+    plt.close(fig)
+    return img_str
 
-def plot_qubit_bloch(state, qubit_index=0, title="Qubit Bloch Sphere"):
+def plot_qubit_bloch(state, qubit_index=0, title="Qubit Bloch Sphere", description=""):
     reduced_dm = partial_trace(state, [i for i in range(state.num_qubits) if i != qubit_index])
+    X = np.array([[0,1],[1,0]])
+    Y = np.array([[0,-1j],[1j,0]])
+    Z = np.array([[1,0],[0,-1]])
     bloch_vector = [
-        np.real(np.trace(reduced_dm.data @ np.array([[0,1],[1,0]]))),
-        np.real(np.trace(reduced_dm.data @ np.array([[0,-1j],[1j,0]]))),
-        np.real(np.trace(reduced_dm.data @ np.array([[1,0],[0,-1]])))
+        np.real(np.trace(reduced_dm.data @ X)),
+        np.real(np.trace(reduced_dm.data @ Y)),
+        np.real(np.trace(reduced_dm.data @ Z))
     ]
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection="3d")
+    ax = fig.add_subplot(111, projection='3d')
     b = Bloch(axes=ax)
     b.add_vectors(bloch_vector)
     b.title = title
-    b.show()
+    fig.text(0.5, 0.01, description, wrap=True, horizontalalignment='center', fontsize=8)
+    b.render()
     return fig_to_base64(fig)
 
 # ====================================================
@@ -52,7 +64,7 @@ def bb84_qkd(num_qubits=50, backend=None, eve=False):
 
     alice_bits, bob_bits = [], []
     alice_bases, bob_bases = [], []
-    bloch_states = []
+    bloch_pairs = []
     qc_example = None
 
     for i in range(num_qubits):
@@ -71,29 +83,38 @@ def bb84_qkd(num_qubits=50, backend=None, eve=False):
             qc.x(q[0])
         if a_basis == "X":
             qc.h(q[0])
-
-        qc_no_measure = qc.copy()
-        state = Statevector.from_instruction(qc_no_measure)
-        bloch_states.append(state)
-
-        if eve:
-            eve_reg = ClassicalRegister(1, "eve")
-            qc.add_register(eve_reg)
-            qc.measure(q[0], eve_reg[0])
-            qc.reset(q[0])
+        alice_state = Statevector.from_instruction(qc.copy())
 
         if b_basis == "X":
             qc.h(q[0])
-        qc.measure(q[0], c[0])
 
+        # Eve intercepts during QKD
+        if eve:
+            qc.measure(q[0], c[0])
+            qc.reset(q[0])
+
+        qc.measure(q[0], c[0])
         if qc_example is None:
             qc_example = qc
-
         result = backend.run(qc, shots=1).result()
         bob_bit = list(result.get_counts().keys())[0]
         bob_bits.append(bob_bit)
 
-    # Sifting
+        if i < 2:
+            qc_bob_viz = QuantumCircuit(1)
+            if b_basis == "Z" and bob_bit == '1':
+                qc_bob_viz.x(0)
+            elif b_basis == "X" and bob_bit == '0':
+                qc_bob_viz.h(0)
+            elif b_basis == "X" and bob_bit == '1':
+                qc_bob_viz.x(0)
+                qc_bob_viz.h(0)
+            bob_post_measurement_state = Statevector.from_instruction(qc_bob_viz)
+            bloch_pairs.append({
+                "alice": plot_qubit_bloch(alice_state, 0, f"Alice Qubit {i+1}", f"Alice bit '{a_bit}' basis {a_basis}"),
+                "bob": plot_qubit_bloch(bob_post_measurement_state, 0, f"Bob Qubit {i+1}", f"Bob measures {bob_bit} basis {b_basis}")
+            })
+
     key_bits, sifted_bits = [], []
     mismatches, total_matches = 0, 0
     for a_b, b_b, a_bit, b_bit in zip(alice_bases, bob_bases, alice_bits, bob_bits):
@@ -104,7 +125,6 @@ def bb84_qkd(num_qubits=50, backend=None, eve=False):
                 key_bits.append(a_bit)
             else:
                 mismatches += 1
-
     q_error_rate = (mismatches / total_matches) if total_matches > 0 else 1.0
 
     return {
@@ -115,12 +135,13 @@ def bb84_qkd(num_qubits=50, backend=None, eve=False):
         "bob_bits": bob_bits,
         "alice_bases": alice_bases,
         "bob_bases": bob_bases,
-        "bloch_spheres": [plot_qubit_bloch(state, 0, f"BB84 Qubit {i}") for i, state in enumerate(bloch_states[:5])],
-        "circuit": fig_to_base64(qc_example.draw(output="mpl"))
+        "bloch_spheres": bloch_pairs,
+        "circuit": fig_to_base64(qc_example.draw(output="mpl")),
+        "secure": not eve  # Add flag for QKD security
     }
 
 # ====================================================
-# Superdense Coding
+# Superdense Coding with Eve effect
 # ====================================================
 def superdense_coding(message: str, key_bits, eve=False, backend=None):
     if backend is None:
@@ -140,22 +161,22 @@ def superdense_coding(message: str, key_bits, eve=False, backend=None):
     qc.h(q[0])
     qc.cx(q[0], q[1])
 
+    # Encode message
     if encrypted == ("0","1"):
         qc.x(q[0])
     elif encrypted == ("1","0"):
         qc.z(q[0])
     elif encrypted == ("1","1"):
-        qc.x(q[0]); qc.z(q[0])
+        qc.x(q[0])
+        qc.z(q[0])
 
-    qc_no_measure = qc.copy()
-    state = Statevector.from_instruction(qc_no_measure)
-    density = DensityMatrix(state)
-
+    # Eve intercepts during SDC
     if eve:
-        eve_reg = ClassicalRegister(1, "eve")
-        qc.add_register(eve_reg)
-        qc.measure(q[0], eve_reg[0])
-        qc.reset(q[0])
+        qc.measure(q[0], c[0])
+        qc.reset(q[0])  # Destroy entanglement
+
+    state = Statevector.from_instruction(qc.copy())
+    density = DensityMatrix(state)
 
     qc.cx(q[0], q[1])
     qc.h(q[0])
@@ -165,7 +186,6 @@ def superdense_coding(message: str, key_bits, eve=False, backend=None):
     result = backend.run(tqc, shots=1024).result()
     counts = result.get_counts()
 
-    # Convert complex numbers to JSON-serializable format
     def complex_to_json(obj):
         if isinstance(obj, complex):
             return {"real": float(obj.real), "imaginary": float(obj.imag)}
@@ -178,18 +198,17 @@ def superdense_coding(message: str, key_bits, eve=False, backend=None):
         else:
             return obj
 
-    # Convert statevector and density matrix to JSON-serializable format
-    statevector_json = complex_to_json(state.data.tolist())
-    density_matrix_json = complex_to_json(density.data.tolist())
-
     return {
         "encrypted_message": encrypted,
-        "entanglement_status": "Entanglement established between qubits",
-        "communication_status": "Message transmitted via entangled pair",
+        "entanglement_status": "Destroyed by Eve" if eve else "Entanglement established between qubits",
+        "communication_status": "Message garbled due to Eve" if eve else "Message transmitted via entangled pair",
         "circuit": fig_to_base64(qc.draw(output="mpl")),
-        "statevector": statevector_json,
-        "density_matrix": density_matrix_json,
-        "bloch_spheres": [plot_qubit_bloch(state, i, f"SDC Qubit {i}") for i in range(2)],
+        "statevector": complex_to_json(state.data.tolist()),
+        "density_matrix": complex_to_json(density.data.tolist()),
+        "bloch_spheres": [
+            plot_qubit_bloch(state, 0, "SDC Qubit 0", f"Qubit 0 after encoding {message}"),
+            plot_qubit_bloch(state, 1, "SDC Qubit 1", "Qubit 1 (partner) after encoding")
+        ],
         "histogram": counts
     }
 
@@ -197,120 +216,66 @@ def superdense_coding(message: str, key_bits, eve=False, backend=None):
 # Flask App
 # ====================================================
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 backend = AerSimulator()
 
 @app.route("/qkd", methods=["POST"])
 def qkd_route():
     try:
-        logger.info("Received QKD request")
         data = request.json
-        if not data:
-            logger.error("No JSON data provided")
-            return jsonify({"error": "No JSON data provided"}), 400
-        
         num_qubits = data.get("num_qubits", 50)
         eve = data.get("eve", False)
-        
-        logger.info(f"QKD parameters: num_qubits={num_qubits}, eve={eve}")
-        
         if num_qubits not in [10, 50, 100]:
-            logger.error(f"Invalid number of qubits: {num_qubits}")
-            return jsonify({"error": "Invalid number of qubits. Must be 10, 50, or 100"}), 400
-        
+            return jsonify({"error": "Invalid number of qubits"}), 400
         result = bb84_qkd(num_qubits=num_qubits, backend=backend, eve=eve)
-        logger.info("QKD simulation completed successfully")
         return jsonify(result)
     except Exception as e:
-        logger.error(f"QKD simulation failed: {str(e)}")
         return jsonify({"error": f"QKD simulation failed: {str(e)}"}), 500
 
 @app.route("/sdc", methods=["POST"])
 def sdc_route():
     try:
-        logger.info("Received SDC request")
         data = request.json
-        if not data:
-            logger.error("No JSON data provided")
-            return jsonify({"error": "No JSON data provided"}), 400
-        
         message = data.get("message")
         key = data.get("qkd_key")
+        qkd_secure = data.get("qkd_secure", True)
         eve = data.get("eve", False)
-        
-        logger.info(f"SDC parameters: message={message}, key_length={len(key) if key else 0}, eve={eve}")
-        
-        if not message or message not in ["00", "01", "10", "11"]:
-            logger.error(f"Invalid message: {message}")
-            return jsonify({"error": "Invalid message. Must be one of: 00, 01, 10, 11"}), 400
-        
+
+        if not qkd_secure:
+            return jsonify({"error": "QKD key compromised! Channel insecure. Restart key generation."}), 400
+        if not message or message not in ["00","01","10","11"]:
+            return jsonify({"error": "Invalid message"}), 400
         if not key:
-            logger.error("QKD key is required")
             return jsonify({"error": "QKD key is required"}), 400
-        
+
         result = superdense_coding(message, key, eve=eve, backend=backend)
-        logger.info("SDC simulation completed successfully")
         return jsonify(result)
-    except ValueError as e:
-        logger.error(f"SDC ValueError: {str(e)}")
-        return jsonify({"error": str(e)}), 400
     except Exception as e:
-        logger.error(f"SDC simulation failed: {str(e)}")
         return jsonify({"error": f"Superdense coding failed: {str(e)}"}), 500
 
 @app.route("/full-simulation", methods=["POST"])
 def full_simulation():
     try:
-        logger.info("Received full simulation request")
         data = request.json
-        if not data:
-            logger.error("No JSON data provided")
-            return jsonify({"error": "No JSON data provided"}), 400
-        
         message = data.get("message", "01")
         num_qubits = data.get("num_qubits", 50)
-        
-        logger.info(f"Full simulation parameters: message={message}, num_qubits={num_qubits}")
-        
-        if message not in ["00", "01", "10", "11"]:
-            logger.error(f"Invalid message: {message}")
-            return jsonify({"error": "Invalid message. Must be one of: 00, 01, 10, 11"}), 400
-        
-        if num_qubits not in [10, 50, 100]:
-            logger.error(f"Invalid number of qubits: {num_qubits}")
-            return jsonify({"error": "Invalid number of qubits. Must be 10, 50, or 100"}), 400
+        qkd_eve = data.get("qkd_eve", False)
+        sdc_eve = data.get("sdc_eve", False)
 
-        logger.info("Starting QKD simulation...")
-        qkd_result = bb84_qkd(num_qubits=num_qubits, backend=backend, eve=False)
+        qkd_result = bb84_qkd(num_qubits=num_qubits, backend=backend, eve=qkd_eve)
         key = qkd_result["qkd_key"][:2] if len(qkd_result["qkd_key"]) >= 2 else "00"
-        logger.info(f"QKD completed, using key: {key}")
 
-        logger.info("Starting SDC simulation...")
-        sdc_result = superdense_coding(message, key, eve=False, backend=backend)
-        logger.info("Full simulation completed successfully")
+        if not qkd_result["secure"]:
+            return jsonify({"error": "QKD key compromised! Restart key generation."}), 400
 
-        return jsonify({
-            "qkd": qkd_result,
-            "sdc": sdc_result
-        })
+        sdc_result = superdense_coding(message, key, eve=sdc_eve, backend=backend)
+        return jsonify({"qkd": qkd_result, "sdc": sdc_result})
     except Exception as e:
-        logger.error(f"Full simulation failed: {str(e)}")
         return jsonify({"error": f"Full simulation failed: {str(e)}"}), 500
 
 @app.route("/health", methods=["GET"])
 def health_check():
-    return jsonify({
-        "status": "healthy",
-        "message": "Satellite-Ground Communication Simulator Backend (Application Phase)"
-    })
-
-@app.errorhandler(404)
-def not_found(error):
-    return jsonify({"error": "Endpoint not found"}), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    return jsonify({"error": "Internal server error"}), 500
+    return jsonify({"status": "healthy", "message": "Satellite-Ground Communication Simulator Backend"})
 
 # ====================================================
 # Main
