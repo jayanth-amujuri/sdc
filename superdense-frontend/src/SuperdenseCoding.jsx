@@ -1,3 +1,4 @@
+// SuperdenseCoding.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -15,32 +16,35 @@ export default function SuperdenseCoding() {
   const [error, setError] = useState(null);
   const [qkdKey, setQkdKey] = useState('');
   const [sdcEve, setSdcEve] = useState(false);
-  const [qkdSecure, setQkdSecure] = useState(true); // updated from backend
+  const [qkdSecure, setQkdSecure] = useState(true);
 
   useEffect(() => {
     if (location.state) {
       setQkdKey(location.state.qkdKey || '');
-      // Accept either sdcEve (explicit) or simulateEve (from QKD page) and default to false
       setSdcEve(location.state.sdcEve ?? location.state.simulateEve ?? false);
-      // Prefer explicit qkdSecure, else infer from qber if provided, else default true
       const inferredSecure =
         location.state.qkdSecure ??
         (typeof location.state.qber === 'number' ? location.state.qber < 0.11 : true);
       setQkdSecure(!!inferredSecure);
     }
   }, [location.state]);
-  
+
+  useEffect(() => {
+    if (!qkdSecure || !qkdKey) return;
+    if (results !== null && !isLoading) {
+      handleSendMessage();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sdcEve]);
 
   const handleSendMessage = async () => {
     if (!qkdSecure) return;
     setIsLoading(true);
     setError(null);
-
     try {
-      const response = await fetch(`${config.application.baseURL}/sdc`, {
+      const resp = await fetch(`${config.application.baseURL}/sdc`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Pass QKD key and security flag so backend can validate
         body: JSON.stringify({
           message,
           eve: sdcEve,
@@ -48,10 +52,10 @@ export default function SuperdenseCoding() {
           qkd_secure: qkdSecure
         })
       });
-      const data = await response.json();
-      if (response.ok) setResults(data);
+      const data = await resp.json();
+      if (resp.ok) setResults(data);
       else setError(data.error || 'Failed to run superdense coding');
-    } catch {
+    } catch (e) {
       setError('Network error: Unable to connect to backend');
     } finally {
       setIsLoading(false);
@@ -60,16 +64,16 @@ export default function SuperdenseCoding() {
 
   const handleBackToQKD = () => navigate('/qkd-simulation');
   const handleGoToFullSimulation = () => {
-    navigate('/full-simulation', {
-      state: {
-        qkdKey: qkdKey,
-        message: message,
-        simulateEve: sdcEve
-      }
-    });
+    navigate('/full-simulation', { state: { qkdKey, message, simulateEve: sdcEve }});
   };
 
-  const histogramData = results?.histogram ? Object.entries(results.histogram).map(([key, value]) => ({ name: key, value })) : [];
+  // Normalize histogram keys into two-character strings (00, 01, 10, 11)
+  const histogramData = results?.histogram
+    ? Object.entries(results.histogram).map(([key, value]) => ({
+        name: String(key).trim().padStart(2, '0'),
+        value
+      })).sort((a,b) => a.name.localeCompare(b.name))
+    : [];
 
   const formatDensityMatrix = (matrix) => {
     if (!matrix) return null;
@@ -93,7 +97,6 @@ export default function SuperdenseCoding() {
 
       <div className="sdc-page">
         <motion.div className="sdc-container" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-
           <header className="sdc-header">
             <motion.h1 className="sdc-title" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.2 }}>
               Superdense Coding with QKD Keys
@@ -103,6 +106,8 @@ export default function SuperdenseCoding() {
             </motion.p>
           </header>
 
+          {sdcEve && <div className="eve-persistent-banner">⚠️ Eve has interfered! Communication may be compromised.</div>}
+
           {qkdKey && (
             <motion.div className="qkd-key-section" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}>
               <h3>QKD Key</h3>
@@ -110,11 +115,7 @@ export default function SuperdenseCoding() {
             </motion.div>
           )}
 
-          {!qkdSecure && (
-            <motion.div className="error-message" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              ⚠️ QKD key compromised! Regenerate QKD to proceed.
-            </motion.div>
-          )}
+          {!qkdSecure && <motion.div className="error-message" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>⚠️ QKD key compromised! Regenerate QKD to proceed.</motion.div>}
 
           <motion.div className="controls-section" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.8 }}>
             <div className="control-group">
@@ -126,12 +127,25 @@ export default function SuperdenseCoding() {
                 <option value="11">11</option>
               </select>
             </div>
+
             <div className="control-group">
               <label>Eve during SDC:</label>
-              <span className="eve-status">{sdcEve ? 'Yes' : 'No'}</span>
+              <div className="eve-toggle">
+                <button
+                  type="button"
+                  className={`toggle-button ${sdcEve ? 'on' : 'off'}`}
+                  onClick={() => setSdcEve(prev => !prev)}
+                  disabled={isLoading}
+                  aria-pressed={sdcEve}
+                  aria-label="Toggle Eve during SDC"
+                >
+                  {sdcEve ? 'Yes (Click to disable)' : 'No (Click to enable)'}
+                </button>
+              </div>
             </div>
+
             <button className="send-message-button" onClick={handleSendMessage} disabled={isLoading || !qkdSecure}>
-              {isLoading ? 'Sending...' : (!qkdSecure ? 'QKD Key Compromised!' : 'Send Message')}
+              {isLoading ? 'Sending...' : (!qkdSecure ? 'QKD Key Compromised!' : (sdcEve ? 'Send with Eve' : 'Send without Eve'))}
             </button>
           </motion.div>
 
@@ -139,6 +153,10 @@ export default function SuperdenseCoding() {
 
           {results && (
             <motion.div className="results-section" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+              <div className={`${sdcEve ? 'warning-banner' : 'success-banner'}`}>
+                {sdcEve ? '⚠️ Eve has interfered! Message may be corrupted.' : '✅ Entanglement successful. Message delivered securely.'}
+              </div>
+
               <h2>Superdense Coding Results</h2>
 
               <div className="encrypted-section">
@@ -147,13 +165,17 @@ export default function SuperdenseCoding() {
               </div>
 
               <div className="status-section">
-                <div className="status-card">
+                <div className={`status-card ${sdcEve ? 'warning-card' : 'success-card'}`}>
                   <h4>Entanglement Status</h4>
-                  <p>{results.entanglement_status}</p>
+                  <p className={`status-text ${sdcEve ? 'warning' : 'success'}`}>{sdcEve ? '❌ Entanglement broken by Eve' : '✅ Entanglement established'}</p>
+                </div>
+                <div className={`status-card ${sdcEve ? 'warning-card' : 'success-card'}`}>
+                  <h4>Communication Status</h4>
+                  <p className={`status-text ${sdcEve ? 'warning' : 'success'}`}>{sdcEve ? '⚠️ Communication garbled' : '✅ Message transmitted securely'}</p>
                 </div>
                 <div className="status-card">
-                  <h4>Communication Status</h4>
-                  <p>{results.communication_status}</p>
+                  <h4>Eve Status</h4>
+                  <p className={`eve-badge ${sdcEve ? 'on' : 'off'}`}>{sdcEve ? 'Eve: ON' : 'Eve: OFF'}</p>
                 </div>
               </div>
 
@@ -166,14 +188,14 @@ export default function SuperdenseCoding() {
 
               {histogramData.length > 0 && (
                 <div className="histogram-section">
-                  <h3>Measurement Histogram</h3>
+                  <h3>Measurement Histogram {sdcEve ? '(With Tampering)' : '(No Eve)'}</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={histogramData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
-                      <YAxis />
+                      <YAxis allowDecimals={false} />
                       <Tooltip />
-                      <Bar dataKey="value" fill="#667eea" />
+                      <Bar dataKey="value" fill={sdcEve ? '#ef4444' : '#22c55e'} label={{ position: 'top' }} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -182,7 +204,14 @@ export default function SuperdenseCoding() {
               {results.bloch_spheres?.length > 0 && (
                 <div className="bloch-section">
                   <h3>Bloch Spheres</h3>
-                  <div className="bloch-gallery">{results.bloch_spheres.map((b, i) => <div key={i} className="bloch-item"><img src={`data:image/png;base64,${b}`} alt={`Qubit ${i + 1}`} /><p>Qubit {i + 1}</p></div>)}</div>
+                  <div className="bloch-gallery">
+                    {results.bloch_spheres.map((b, i) => (
+                      <div key={i} className="bloch-item">
+                        <img src={`data:image/png;base64,${b}`} alt={`Qubit ${i + 1}`} />
+                        <p>Qubit {i + 1}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -190,7 +219,11 @@ export default function SuperdenseCoding() {
                 <div className="density-section">
                   <h3>Density Matrix</h3>
                   <table className="density-table">
-                    <tbody>{formatDensityMatrix(results.density_matrix)?.map((row, rI) => <tr key={rI}>{row.map((el, cI) => <td key={cI}>{el}</td>)}</tr>)}</tbody>
+                    <tbody>
+                      {formatDensityMatrix(results.density_matrix)?.map((row, rI) => (
+                        <tr key={rI}>{row.map((el, cI) => <td key={cI}>{el}</td>)}</tr>
+                      ))}
+                    </tbody>
                   </table>
                 </div>
               )}

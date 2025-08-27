@@ -27,21 +27,21 @@ export default function FullSimulation() {
   const handleRunFullSimulation = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch(`${config.application.baseURL}/full-simulation`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: message,
-          num_qubits: 50
-        }),
+          num_qubits: 50,
+          qkd_eve: false,
+          sdc_eve: simulateEve
+        })
       });
 
       const data = await response.json();
-      
+
       if (response.ok) {
         setResults(data);
       } else {
@@ -59,22 +59,26 @@ export default function FullSimulation() {
   };
 
   const handleGoToResults = () => {
-    navigate('/results-analysis', { 
-      state: { 
+    navigate('/results-analysis', {
+      state: {
         fullResults: results,
         qkdKey: qkdKey,
         message: message,
         simulateEve: simulateEve
-      } 
+      }
     });
   };
 
-  // Prepare histogram data for comparison
-  const histogramData = results?.sdc?.histogram ? 
-    Object.entries(results.sdc.histogram).map(([key, value]) => ({
-      name: key,
-      value: value
-    })) : [];
+  // Normalize histogram keys into two-character strings (00, 01, 10, 11)
+  const histogramData = results?.sdc?.histogram
+    ? Object.entries(results.sdc.histogram)
+        .map(([key, value]) => ({ name: String(key).trim().padStart(2, '0'), value }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : [];
+
+  const sdcEve = simulateEve; // for styling consistency
+  const entDestroyed = typeof results?.sdc?.entanglement_status === 'string' && results.sdc.entanglement_status.toLowerCase().includes('destroyed');
+  const commGarbled = typeof results?.sdc?.communication_status === 'string' && results.sdc.communication_status.toLowerCase().includes('garbled');
 
   return (
     <>
@@ -120,6 +124,13 @@ export default function FullSimulation() {
             </motion.p>
           </header>
 
+          {/* Persistent Eve banner if requested for SDC stage */}
+          {sdcEve && (
+            <div className="eve-persistent-banner">
+              ⚠️ Eve has interfered during Superdense Coding. Communication may be compromised.
+            </div>
+          )}
+
           {/* Simulation Parameters */}
           <motion.div 
             className="parameters-section"
@@ -131,14 +142,14 @@ export default function FullSimulation() {
             <div className="parameters-grid">
               <div className="parameter-item">
                 <span className="parameter-label">QKD Key:</span>
-                <span className="parameter-value">{qkdKey || 'Not available'}</span>
+                <span className="parameter-value">{qkdKey || 'Generated automatically in this step'}</span>
               </div>
               <div className="parameter-item">
                 <span className="parameter-label">Message:</span>
                 <span className="parameter-value">{message}</span>
               </div>
               <div className="parameter-item">
-                <span className="parameter-label">Eve Present:</span>
+                <span className="parameter-label">Eve During SDC:</span>
                 <span className="parameter-value">{simulateEve ? 'Yes' : 'No'}</span>
               </div>
             </div>
@@ -216,7 +227,7 @@ export default function FullSimulation() {
                   <div className="step-content">
                     <h4>Entanglement</h4>
                     <div className="step-details">
-                      <p><strong>Status:</strong> {results.sdc?.entanglement_status}</p>
+                      <p><strong>Status:</strong> {entDestroyed ? '❌ Entanglement broken by Eve' : '✅ Entanglement established between qubits'}</p>
                       <p><strong>Qubits:</strong> 2 entangled qubits prepared</p>
                     </div>
                   </div>
@@ -228,7 +239,7 @@ export default function FullSimulation() {
                   <div className="step-content">
                     <h4>Communication</h4>
                     <div className="step-details">
-                      <p><strong>Status:</strong> {results.sdc?.communication_status}</p>
+                      <p><strong>Status:</strong> {commGarbled ? '⚠️ Communication garbled due to Eve' : '✅ Message transmitted via entangled pair'}</p>
                       <p><strong>Channel:</strong> Quantum channel transmission</p>
                     </div>
                   </div>
@@ -246,6 +257,28 @@ export default function FullSimulation() {
                   </div>
                 </div>
               </div>
+
+              {/* Visuals: Circuit and Bloch Spheres */}
+              {results.sdc?.circuit && (
+                <div className="circuit-section">
+                  <h3>Quantum Circuit</h3>
+                  <img src={`data:image/png;base64,${results.sdc.circuit}`} alt="Circuit" className="circuit-image" />
+                </div>
+              )}
+
+              {results.sdc?.bloch_spheres?.length > 0 && (
+                <div className="bloch-section">
+                  <h3>Bloch Spheres</h3>
+                  <div className="bloch-gallery">
+                    {results.sdc.bloch_spheres.map((b, i) => (
+                      <div key={i} className="bloch-item">
+                        <img src={`data:image/png;base64,${b}`} alt={`Qubit ${i + 1}`} />
+                        <p>Qubit {i + 1}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Final Summary Block */}
               <div className="final-summary-section">
@@ -283,28 +316,30 @@ export default function FullSimulation() {
 
                 {/* Comparison Histogram */}
                 <div className="comparison-histogram">
-                  <h4>Measurement Results Comparison</h4>
+                  <h4>Measurement Results {sdcEve ? '(With Tampering)' : '(No Eve)'}</h4>
                   <div className="histogram-container">
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={histogramData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
-                        <YAxis />
+                        <YAxis allowDecimals={false} />
                         <Tooltip />
-                        <Bar dataKey="value" fill="#667eea" />
+                        <Bar dataKey="value" fill={sdcEve ? '#ef4444' : '#667eea'} label={{ position: 'top' }} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
 
-                {/* Success Status */}
+                {/* Transmission Status */}
                 <div className="success-status">
                   <h4>Transmission Status</h4>
-                  <div className="status-indicator success">
-                    ✅ Communication Successful
+                  <div className={`status-indicator ${entDestroyed || commGarbled ? 'warning' : 'success'}`}>
+                    {entDestroyed || commGarbled ? '⚠️ Communication compromised' : '✅ Communication Successful'}
                   </div>
                   <p className="status-description">
-                    The message was successfully transmitted and decoded using quantum entanglement.
+                    {entDestroyed || commGarbled
+                      ? 'Eve likely interfered with the channel. Results show degraded fidelity.'
+                      : 'The message was successfully transmitted and decoded using quantum entanglement.'}
                   </p>
                 </div>
               </div>
