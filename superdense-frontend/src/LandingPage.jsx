@@ -13,16 +13,16 @@ export default function LandingPage() {
     <>
       {/* Particles Background */}
       <Particles 
-        particleCount={300}
-        particleSpread={15}
-        speed={0.15}
-        particleColors={["#667eea", "#764ba2", "#f093fb", "#22d3ee", "#2563eb"]}
+        particleCount={700}
+        particleSpread={18}
+        speed={0.18}
+        particleColors={["#8ab4ff", "#a78bfa", "#22d3ee", "#38bdf8", "#f093fb"]}
         moveParticlesOnHover={true}
-        particleHoverFactor={2}
+        particleHoverFactor={2.2}
         alphaParticles={true}
-        particleBaseSize={80}
-        sizeRandomness={0.8}
-        cameraDistance={25}
+        particleBaseSize={120}
+        sizeRandomness={0.9}
+        cameraDistance={22}
         disableRotation={false}
       />
       

@@ -50,7 +50,7 @@ def plot_qubit_bloch(state, qubit_index=0, title="Qubit Bloch Sphere", descripti
     b.title = title
     fig.text(0.5, 0.01, description, wrap=True, horizontalalignment='center', fontsize=8)
     b.render()
-        return fig_to_base64(fig)
+    return fig_to_base64(fig)
 
 # --------------------------
 # BB84 QKD (keeps your original behavior)
@@ -232,7 +232,7 @@ def superdense_coding(message: str, key_bits, eve=False, backend=None):
             return [complex_to_json(item) for item in obj]
         elif isinstance(obj, dict):
             return {key: complex_to_json(value) for key, value in obj.items()}
-    else:
+        else:
             return obj
 
     return {
@@ -252,7 +252,7 @@ def superdense_coding(message: str, key_bits, eve=False, backend=None):
 # Flask app
 app = Flask(__name__)
 CORS(app)
-    backend = AerSimulator()
+backend = AerSimulator()
 
 @app.route("/qkd", methods=["POST"])
 def qkd_route():

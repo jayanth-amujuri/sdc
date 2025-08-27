@@ -169,7 +169,7 @@
 
 /* Main Content Styles */
 .bg-slate-800\/50 {
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(30, 41, 59, 0.35);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
@@ -510,7 +510,7 @@
 
 /* Enhanced Result Card Styles */
 .result-card {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 25px;

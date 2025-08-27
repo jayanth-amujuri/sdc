@@ -225,14 +225,16 @@ export default function Simulator() {
               </button>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-8">
-              <div className="w-full lg:w-1/2">
-                <ResultCard title="Local AerSimulator" isLoading={isLoadingLocal} result={localResult} error={error.local} />
+            {(isLoadingLocal || isLoadingIbm || localResult || ibmResult) && (
+              <div className="flex flex-col lg:flex-row gap-8">
+                <div className="w-full lg:w-1/2">
+                  <ResultCard title="Local AerSimulator" isLoading={isLoadingLocal} result={localResult} error={error.local} />
+                </div>
+                <div className="w-full lg:w-1/2">
+                  <ResultCard title="IBM Quantum Platform" isLoading={isLoadingIbm} result={ibmResult} error={error.ibm} />
+                </div>
               </div>
-              <div className="w-full lg:w-1/2">
-                <ResultCard title="IBM Quantum Platform" isLoading={isLoadingIbm} result={ibmResult} error={error.ibm} />
-              </div>
-            </div>
+            )}
           </main>
         </div>
       </div>

@@ -76,8 +76,8 @@ def run_local_simulation(message: str, shots: int = 1024):
 def run_ibm_simulation(message: str, shots: int = 1024):
     print("--- Running IBM Simulation ---")
     try:
-        IBM_QUANTUM_TOKEN = os.getenv("IBM_QUANTUM_TOKEN", "T_g8mtApJFwLh5zlJ5GMWWhqfVai3K23bfFZ9rqQO0Bn")
-        IBM_INSTANCE = os.getenv("IBM_INSTANCE", "crn:v1:bluemix:public:quantum-computing:us-east:a/c963c3666fc146bfa5a8b0cf1fc2d38a:d45e06b8-e294-4181-97c2-6d204a4bcbbd::")
+        IBM_QUANTUM_TOKEN = os.getenv("IBM_QUANTUM_TOKEN", "hGpCNlr8B_Az6hu_r1j3m514ap-xpYmOcPv8CoixCTRV")
+        IBM_INSTANCE = os.getenv("IBM_INSTANCE", "crn:v1:bluemix:public:quantum-computing:us-east:a/e85b9e1fcce04a34a2f8b4874fe29ffb:aec89adb-4b7b-4228-b827-68281995d5ee::")
 
         service = QiskitRuntimeService(channel="ibm_quantum_platform",
                                        token=IBM_QUANTUM_TOKEN,

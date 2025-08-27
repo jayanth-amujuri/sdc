@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Particles from './Particles';
+import HoloToggle from './HoloToggle';
 import config from './config';
 import './QKDSimulation.css';
 
@@ -117,12 +118,7 @@ export default function QKDSimulation() {
             </div>
             <div className="control-group">
               <label className="control-label">Simulate Eve:</label>
-              <div className="toggle-container">
-                <input type="checkbox" id="eve-toggle" checked={simulateEve} onChange={(e) => setSimulateEve(e.target.checked)} className="toggle-input" />
-                <label htmlFor="eve-toggle" className="toggle-label">
-                  <span className="toggle-text">{simulateEve ? 'Yes' : 'No'}</span>
-                </label>
-              </div>
+              <HoloToggle checked={simulateEve} onChange={setSimulateEve} labelOn="Yes" labelOff="No" />
             </div>
             <button className="run-qkd-button" onClick={handleRunQKD} disabled={isLoading}>
               {isLoading ? 'Running QKD...' : 'Run QKD'}

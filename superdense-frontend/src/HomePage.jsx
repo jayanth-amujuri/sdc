@@ -14,16 +14,16 @@ export default function HomePage() {
   return (
     <>
       <Particles 
-        particleCount={300}
-        particleSpread={15}
-        speed={0.3}
-        particleColors={["#667eea", "#764ba2", "#f093fb", "#22d3ee", "#2563eb", "#7c3aed"]}
+        particleCount={800}
+        particleSpread={20}
+        speed={0.22}
+        particleColors={["#8ab4ff", "#a78bfa", "#22d3ee", "#38bdf8", "#f093fb"]}
         moveParticlesOnHover={true}
-        particleHoverFactor={2}
+        particleHoverFactor={2.2}
         alphaParticles={true}
-        particleBaseSize={80}
-        sizeRandomness={0.8}
-        cameraDistance={25}
+        particleBaseSize={140}
+        sizeRandomness={0.9}
+        cameraDistance={22}
         disableRotation={false}
       />
       
