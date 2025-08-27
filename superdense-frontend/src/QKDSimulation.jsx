@@ -14,7 +14,7 @@ export default function QKDSimulation() {
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
 
-  const handleRunQKD = async () => {
+  const runQKD = async (eveFlag) => {
     setIsLoading(true);
     setError(null);
     setResults(null);
@@ -22,13 +22,13 @@ export default function QKDSimulation() {
       const response = await fetch(`${config.application.baseURL}/qkd`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ num_qubits: numQubits, eve: simulateEve }),
+        body: JSON.stringify({ num_qubits: numQubits, eve: eveFlag }),
       });
       const data = await response.json();
       if (response.ok) {
         setResults(data);
         if (!data.secure) {
-          setError('⚠️ QKD key compromised! Eve is present. Do not proceed to Superdense Coding.');
+          setError('⚠️ QKD key compromised! Eve is present. Generate another key to proceed.');
         }
       } else {
         setError(data.error || 'Failed to run QKD simulation');
@@ -38,6 +38,14 @@ export default function QKDSimulation() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRunQKD = async () => runQKD(simulateEve);
+
+  const handleGenerateSecureKey = async () => {
+    // Force a secure regeneration with Eve disabled
+    setSimulateEve(false);
+    await runQKD(false);
   };
 
   const handleProceedToSuperdense = () => {
@@ -218,9 +226,13 @@ export default function QKDSimulation() {
                 </div>
               )}
 
-              {/* Proceed */}
+              {/* Proceed / Regenerate */}
               <div className="proceed-section">
-                <button className="proceed-button" onClick={handleProceedToSuperdense}>Go to Superdense Coding →</button>
+                {results.secure && results.qber < 0.11 ? (
+                  <button className="proceed-button" onClick={handleProceedToSuperdense}>Go to Superdense Coding →</button>
+                ) : (
+                  <button className="run-qkd-button" onClick={handleGenerateSecureKey} disabled={isLoading}>Generate Another Key</button>
+                )}
               </div>
             </motion.div>
           )}
