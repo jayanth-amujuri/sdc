@@ -11,6 +11,8 @@ import QKDSimulation from './QKDSimulation';
 import SuperdenseCoding from './SuperdenseCoding';
 import FullSimulation from './FullSimulation';
 import { SimulationProvider } from './SimulationContext';
+import AircraftNavigation from './AircraftNavigation';
+import IbmCloud from './IbmCloud';
 import './index.css';
 
 export default function App() {
@@ -30,6 +32,8 @@ export default function App() {
           <Route path="/qkd-simulation" element={<QKDSimulation />} />
           <Route path="/superdense-coding" element={<SuperdenseCoding />} />
           <Route path="/full-simulation" element={<FullSimulation />} />
+          <Route path="/aircraft-navigation" element={<AircraftNavigation />} />
+          <Route path="/ibm-cloud" element={<IbmCloud />} />
         </Routes>
       </SimulationProvider>
     </Router>

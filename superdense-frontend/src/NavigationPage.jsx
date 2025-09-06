@@ -6,13 +6,15 @@ export default function NavigationPage() {
   const navigate = useNavigate();
   
   const handleTestingPhase = () => {
-    // Navigate to simulator with testing mode
     navigate('/simulator?mode=testing');
   };
   
   const handleApplicationPhase = () => {
-    // Navigate to the new satellite-ground communication simulator
     navigate('/home');
+  };
+
+  const handleIBMQuantumCloud = () => {
+    navigate('/aircraft-navigation');
   };
   
   const handleBackToLanding = () => {
@@ -48,6 +50,7 @@ export default function NavigationPage() {
 
           {/* Navigation Options */}
           <div className="navigation-options">
+            {/* Testing Phase */}
             <div className="navigation-option" onClick={handleTestingPhase}>
               <span className="option-icon">🧪</span>
               <h2 className="option-title">Testing Phase</h2>
@@ -62,6 +65,7 @@ export default function NavigationPage() {
               </ul>
             </div>
 
+            {/* Application Phase */}
             <div className="navigation-option" onClick={handleApplicationPhase}>
               <span className="option-icon">🚀</span>
               <h2 className="option-title">Application Phase</h2>
@@ -73,6 +77,21 @@ export default function NavigationPage() {
                 <li>Real quantum hardware results</li>
                 <li>Professional quantum computing</li>
                 <li>Production-ready applications</li>
+              </ul>
+            </div>
+
+            {/* IBM Quantum Cloud Phase */}
+            <div className="navigation-option" onClick={handleIBMQuantumCloud}>
+              <span className="option-icon">☁️</span>
+              <h2 className="option-title">IBM Quantum Cloud</h2>
+              <p className="option-description">
+                Navigate aircraft with satellite-ground integration powered by IBM Quantum Cloud
+              </p>
+              <ul className="option-features">
+                <li>Aircraft trajectory prediction</li>
+                <li>Satellite-ground communication</li>
+                <li>Six-state QKD integration</li>
+                <li>Real-time restricted status monitoring</li>
               </ul>
             </div>
           </div>

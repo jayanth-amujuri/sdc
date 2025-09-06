@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "event-source-polyfill": "^1.0.31",
     "gsap": "^3.13.0",
     "three": "^0.179.1"
   }

@@ -13,7 +13,7 @@
 }
 
 .navigation-container {
-  max-width: 1200px;
+  max-width: 1300px; /* slightly wider for 3 cards */
   margin: 0 auto;
   text-align: center;
   width: 100%;
@@ -79,7 +79,7 @@
 /* Navigation Options */
 .navigation-options {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr); /* ✅ 3 cards per row */
   gap: 2rem;
   margin-bottom: 4rem;
   animation: fadeInUp 1s ease-out 0.3s both;
@@ -161,15 +161,15 @@
   margin-bottom: 2rem;
 }
 
-/* <<< MODIFIED: Converted to a flex container for better alignment control >>> */
+/* Features List */
 .option-features {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
-  flex-direction: column; /* Stacks items vertically */
-  align-items: center;   /* Centers the items horizontally */
-  gap: 0.25rem;          /* Adds a small space between items */
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
 }
 
 .option-features li {
@@ -178,7 +178,6 @@
   position: relative;
   padding-left: 1.5rem;
   text-align: left;
-  /* <<< MODIFIED: Removed display: inline-block to allow vertical stacking >>> */
 }
 
 .option-features li::before {
@@ -187,45 +186,6 @@
   left: 0;
   top: 0.5rem;
   font-size: 0.9rem;
-}
-
-
-/* Buttons */
-.option-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 1.2rem 2.5rem;
-  font-size: 1.15rem;
-  font-weight: 600;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-  width: 100%;
-  max-width: 320px;
-  position: relative;
-  overflow: hidden;
-}
-
-.option-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.option-button:hover::before {
-  left: 100%;
-}
-
-.option-button:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
 }
 
 /* Footer */
@@ -256,6 +216,12 @@
 }
 
 /* Responsive Design */
+@media (max-width: 992px) {
+  .navigation-options {
+    grid-template-columns: repeat(2, 1fr); /* ✅ 2 cards per row on medium screens */
+  }
+}
+
 @media (max-width: 768px) {
   .navigation-page {
     padding: 1rem;
@@ -270,7 +236,7 @@
   }
   
   .navigation-options {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* ✅ single column on small screens */
     gap: 1.5rem;
   }
   
