@@ -3,14 +3,14 @@
   min-height: 100vh;
   color: white;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  padding: 2rem;
+  padding: 20rem 2rem 2rem; /* 👈 extra top padding for breathing space */
   position: relative;
   overflow-x: hidden;
+  overflow-y: auto;        /* 👈 allow vertical scroll */
   z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;          /* 👈 remove flex centering */
 }
+
 
 .navigation-container {
   max-width: 1300px; /* slightly wider for 3 cards */

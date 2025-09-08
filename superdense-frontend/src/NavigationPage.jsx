@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import Particles from './Particles';
 import './NavigationPage.css';
 
+
 export default function NavigationPage() {
   const navigate = useNavigate();
   
@@ -14,7 +15,7 @@ export default function NavigationPage() {
   };
 
   const handleIBMQuantumCloud = () => {
-    navigate('/aircraft-navigation');
+    navigate('/blank');
   };
   
   const handleBackToLanding = () => {

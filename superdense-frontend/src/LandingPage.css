@@ -1,15 +1,17 @@
 /* Landing Page Styles */
 .landing-page {
   min-height: 100vh;
+  padding-top: 6rem;
   color: white;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   position: relative;
-  overflow-x: hidden;
+  overflow-x: hidden;   /* only block horizontal scroll */
+  overflow-y: auto;     /* allow vertical scroll */
   z-index: 10;
   text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+  /* removed flexbox centering to avoid clipping */
+  display: block;
 }
 
 .landing-container {
@@ -22,7 +24,7 @@
 
 /* Hero Section */
 .hero-section {
-  padding: 4rem 0;
+  padding: 50rem 2rem 4rem; /* more top padding to avoid clipping */
   margin-bottom: 4rem;
   animation: fadeInDown 1s ease-out;
   text-align: center;
@@ -113,9 +115,9 @@
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
   animation: fadeInUp 1s ease-out 0.7s both;
   position: relative;
-  overflow: hidden;
   text-align: center;
   display: inline-block;
+  overflow: hidden; /* fix: prevent clipping while allowing hover effect */
 }
 
 .cta-button::before {
@@ -157,7 +159,7 @@
   text-align: center;
   transition: all 0.4s ease;
   position: relative;
-  overflow: hidden;
+  /* removed overflow:auto to prevent text clipping */
 }
 
 .info-card::before {

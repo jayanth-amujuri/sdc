@@ -5,6 +5,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import matplotlib
 import matplotlib.pyplot as plt
+from dotenv import load_dotenv
+import os
+
+# Load the .env file
+load_dotenv()
+api_key = os.getenv("API_KEY")
+crn = os.getenv("CRN")
 
 # --- Qiskit Imports ---
 print("Checkpoint 1: Importing Qiskit libraries...")
@@ -76,8 +83,8 @@ def run_local_simulation(message: str, shots: int = 1024):
 def run_ibm_simulation(message: str, shots: int = 1024):
     print("--- Running IBM Simulation ---")
     try:
-        IBM_QUANTUM_TOKEN = os.getenv("IBM_QUANTUM_TOKEN", "hGpCNlr8B_Az6hu_r1j3m514ap-xpYmOcPv8CoixCTRV")
-        IBM_INSTANCE = os.getenv("IBM_INSTANCE", "crn:v1:bluemix:public:quantum-computing:us-east:a/e85b9e1fcce04a34a2f8b4874fe29ffb:aec89adb-4b7b-4228-b827-68281995d5ee::")
+        IBM_QUANTUM_TOKEN = os.getenv("IBM_QUANTUM_TOKEN", api_key)
+        IBM_INSTANCE = os.getenv("IBM_INSTANCE", crn)
 
         service = QiskitRuntimeService(channel="ibm_quantum_platform",
                                        token=IBM_QUANTUM_TOKEN,

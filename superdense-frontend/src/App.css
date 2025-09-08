@@ -49,8 +49,16 @@ body {
   color: #e5e7eb;
 }
 
-.page-container { position: relative; min-height: 100vh; overflow: hidden; }
-.flow-layout { display: grid; grid-template-columns: 1fr 2fr 1fr; align-items: center; min-height: 100vh; }
+.page-container { position: relative; min-height: 100vh; overflow: auto; }
+.flow-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: start;   /* don’t vertically center */
+  padding: 60px 0;      /* breathing room */
+  min-height: auto;
+}
+
+
 .side { display: flex; align-items: center; justify-content: center; font-size: 64px; }
 .center { text-align: center; padding: 0 1rem; }
 .title { font-size: 28px; margin-bottom: 16px; background: linear-gradient(90deg, #22d3ee, #2563eb); -webkit-background-clip: text; color: transparent; font-weight: 800; }
@@ -79,3 +87,20 @@ body {
 .panel-title { color: #9ca3af; font-weight: 700; margin-bottom: 8px; }
 .placeholder, .loading, .error { color: #9ca3af; padding: 12px; }
 .mt { margin-top: 20px; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: auto;  /* Prevent scrolling */
+  height: 100%;
+  width: 100%;
+}
+
+.simulation-area {
+  position: relative;
+  width: 100vw;
+  height: 100vh;     /* Full viewport */
+  overflow: auto;  /* Hide overflow */
+  background: black; /* Optional: nice space background */
+}
+

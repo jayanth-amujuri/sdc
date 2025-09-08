@@ -145,75 +145,41 @@ def get_satellite_message():
         }
 
 # ====================================================
-# BB84 QKD Protocol
+# E91 QKD Protocol (simplified to only return the key)
 # ====================================================
-def bb84_qkd(num_qubits=50, backend=None, eve=False):
+def e91_qkd(num_pairs=50, backend=None, eve=False):
     if backend is None:
         backend = AerSimulator()
 
-    alice_bits, bob_bits = [], []
-    alice_bases, bob_bases = [], []
-    bloch_pairs = []
-    qc_example = None
-
-    for i in range(num_qubits):
-        a_bit = random.choice([0, 1])
-        a_basis = random.choice(["Z", "X"])
-        b_basis = random.choice(["Z", "X"])
-        alice_bits.append(str(a_bit))
-        alice_bases.append(a_basis)
-        bob_bases.append(b_basis)
-
-        qc = QuantumCircuit(1, 1)
-
-        # Alice prepares qubit
-        if a_bit == 1:
-            qc.x(0)
-        if a_basis == "X":
-            qc.h(0)
-        alice_state = Statevector.from_instruction(qc.copy())
-
-        # Eve (optional eavesdropper)
-        if eve:
-            qc.measure(0, 0)
-            qc.reset(0)
-
-        # Bob's measurement basis
-        if b_basis == "X":
-            qc.h(0)
-        qc.measure(0, 0)
-
-        if qc_example is None:
-            qc_example = qc
-
-        result = backend.run(qc, shots=1).result()
-        bob_bit = list(result.get_counts().keys())[0]
-        bob_bits.append(bob_bit)
-
-        # --- Visualization for first two qubits ---
-        if i < 2:
-            # Bob's post-measurement state in his basis
-            qc_bob_viz = QuantumCircuit(1)
-            if bob_bit == '1':
-                qc_bob_viz.x(0)
-            if b_basis == "X":
-                qc_bob_viz.h(0)  # Convert Z-basis measurement back to X for Bloch sphere
-            bob_post_measurement_state = DensityMatrix.from_instruction(qc_bob_viz)
-
-            bloch_pairs.append({
-                "alice": plot_qubit_bloch(alice_state, 0, f"Alice Qubit {i+1}", f"Sends bit '{a_bit}' in basis {a_basis}"),
-                "bob": plot_qubit_bloch(bob_post_measurement_state, 0, f"Bob Qubit {i+1}", f"Measures '{bob_bit}' in basis {b_basis}")
-            })
-
-    # Key extraction and error rate
-    key_bits, sifted_bits = [], []
+    key_bits = []
     mismatches, total_matches = 0, 0
-    for a_b, b_b, a_bit, b_bit in zip(alice_bases, bob_bases, alice_bits, bob_bits):
-        if a_b == b_b:
+
+    for _ in range(num_pairs):
+        qc = QuantumCircuit(2, 2)
+
+        # Create entangled pair
+        qc.h(0)
+        qc.cx(0, 1)
+
+        # Choose random measurement bases for Alice & Bob
+        alice_basis = random.choice(["Z", "X"])
+        bob_basis = random.choice(["Z", "X"])
+
+        if alice_basis == "X":
+            qc.h(0)
+        if bob_basis == "X":
+            qc.h(1)
+
+        qc.measure([0, 1], [0, 1])
+        result = backend.run(qc, shots=1).result().get_counts()
+
+        outcome = list(result.keys())[0]
+        alice_bit, bob_bit = outcome[::-1]  # [0]=Alice, [1]=Bob
+
+        if alice_basis == bob_basis:
             total_matches += 1
-            sifted_bits.append((a_bit, b_bit))
-            if a_bit == b_bit:
-                key_bits.append(a_bit)
+            if alice_bit == bob_bit:
+                key_bits.append(alice_bit)
             else:
                 mismatches += 1
 
@@ -222,17 +188,8 @@ def bb84_qkd(num_qubits=50, backend=None, eve=False):
     return {
         "qkd_key": "".join(key_bits),
         "qber": q_error_rate,
-        "sifted_bits": sifted_bits,
-        "alice_bits": alice_bits,
-        "bob_bits": bob_bits,
-        "alice_bases": alice_bases,
-        "bob_bases": bob_bases,
-        "bloch_spheres": bloch_pairs,
-        "circuit": fig_to_base64(qc_example.draw(output="mpl")) if qc_example is not None else None,
         "secure": q_error_rate < 0.11 and not eve
     }
-
-
 # ====================================================
 # Superdense Coding Protocol
 # ====================================================
@@ -242,10 +199,10 @@ def superdense_coding(message: str, key_bits, eve=False, backend=None):
     if len(key_bits) < 2:
         raise ValueError("Need at least 2 QKD bits for encryption")
 
-    encrypted = (
+    encrypted = "".join([
         "1" if message[0] != key_bits[0] else "0",
         "1" if message[1] != key_bits[1] else "0"
-    )
+    ])
 
     qc = QuantumCircuit(2, 2)
     
@@ -291,17 +248,40 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 backend = AerSimulator()
 
+
 @app.route("/qkd", methods=["POST"])
 def qkd_route():
+    """
+    Generate a QKD key with correct length (at least as long as message bits if provided).
+    """
     try:
         data = request.json
         num_qubits = int(data.get("num_qubits", 50))
-        eve = bool(data.get("eve", False))
-        result = bb84_qkd(num_qubits=num_qubits, backend=backend, eve=eve)
-        return jsonify(result)
+        message = str(data.get("message", ""))  # optional, for length check
+        required_length = len(message) if message else num_qubits
+
+        qkd_key = ""
+        qkd_result = None
+
+        # Keep generating until key is long enough
+        while len(qkd_key) < required_length:
+            qkd_result = e91_qkd(num_pairs=num_qubits, backend=backend)
+            qkd_key += qkd_result.get("qkd_key", "")
+
+        # Trim key
+        qkd_key = qkd_key[:required_length]
+        qkd_result["qkd_key"] = qkd_key
+
+        return jsonify({
+            "qkd_key": qkd_key,
+            "qber": qkd_result["qber"],
+            "secure": qkd_result["secure"]
+        })
+
     except Exception as e:
-        logger.exception("QKD simulation failed")
-        return jsonify({"error": f"QKD simulation failed: {str(e)}"}), 500
+        logger.exception("QKD route failed")
+        return jsonify({"error": f"QKD route failed: {str(e)}"}), 500
+
 
 # --- MODIFIED: /sdc endpoint to return all satellite data ---
 @app.route("/sdc", methods=["POST"])
@@ -341,9 +321,19 @@ def full_simulation_route():
         qkd_eve = bool(data.get("qkd_eve", False))
         sdc_eve = bool(data.get("sdc_eve", False))
 
-        # Step 1: Run QKD
-        qkd_result = bb84_qkd(num_qubits=num_qubits, backend=backend, eve=qkd_eve)
-        qkd_key = qkd_result.get("qkd_key")
+        # Step 1: Run QKD until key is long enough
+        required_length = len(message)
+        qkd_key = ""
+        qkd_result = None
+
+        while len(qkd_key) < required_length:
+            qkd_result = e91_qkd(num_pairs=num_qubits, backend=backend, eve=qkd_eve)
+            qkd_key += qkd_result.get("qkd_key", "")
+
+        # Trim to exact required length
+        qkd_key = qkd_key[:required_length]
+        qkd_result["qkd_key"] = qkd_key
+
 
         if not qkd_key or len(qkd_key) < 2:
             return jsonify({"error": "QKD failed to generate a secure key."}), 400

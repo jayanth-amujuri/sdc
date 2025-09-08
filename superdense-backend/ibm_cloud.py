@@ -11,6 +11,13 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 import json
+from dotenv import load_dotenv
+import os
+
+# Load the .env file
+load_dotenv()
+api_key = os.getenv("API_KEY")
+crn = os.getenv("CRN")
 
 # -----------------------
 # Flask Setup
@@ -58,7 +65,7 @@ def sdc_circuit_for_2bits(msg2: str):
 # -----------------------
 # IBM Quantum Service Setup
 # -----------------------
-IBM_API_TOKEN = "G8nlBsI-xAK0AFVXgQNRZ6QDFZM82y-pk9fsoxLCEhfC"  # replace with your IBM API token
+IBM_API_TOKEN = api_key # replace with your IBM API token
 SERVICE_INSTANCE = None
 
 service = QiskitRuntimeService(

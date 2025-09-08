@@ -13,3 +13,18 @@
   height: 100% !important;
   display: block;
 }
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;  /* Prevent scrolling */
+  height: 100%;
+  width: 100%;
+}
+
+.simulation-area {
+  position: relative;
+  width: 100vw;
+  height: 100vh;     /* Full viewport */
+  overflow: hidden;  /* Hide overflow */
+  background: black; /* Optional: nice space background */
+}

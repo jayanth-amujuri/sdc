@@ -1,14 +1,15 @@
 .aircraft-navigation {
   display: grid;
-  grid-template-columns: 30% 70%;
+  grid-template-columns: 20% 40% 40%;
   height: 100vh;
   width: 100vw;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: #121212; /* dark background */
+  background: #121212;
   color: #e0e0e0;
+  overflow: hidden;
 }
 
-/* Sidebar styling */
+/* Sidebar */
 .sidebar {
   background: #1e1e1e;
   padding: 20px;
@@ -19,100 +20,69 @@
   overflow-y: auto;
 }
 
-.sidebar h2 {
-  margin: 0;
-  font-size: 1.4rem;
-  color: #ffffff;
+.sidebar h2 { margin: 0; font-size: 1.4rem; color: #fff; }
+.selector { display: flex; flex-direction: column; gap: 10px; }
+.selector select, .selector button {
+  padding: 10px; border-radius: 8px; background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
+}
+.selector select:focus { outline: none; border-color: #007bff; box-shadow: 0 0 6px #007bff44; }
+.selector button { background: #007bff; color: #fff; cursor: pointer; border: none; transition: 0.3s; }
+.selector button:disabled { background: #555; cursor: not-allowed; }
+.selector button:hover:not(:disabled) { background: #0056b3; }
+
+/* Table */
+.table-container { background: #1a1a1a; padding: 12px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.6);}
+.table-container h3 { margin-bottom: 10px; font-size: 1.2rem; }
+.table-container table { width: 100%; border-collapse: collapse; text-align: center; font-size: 0.95rem; }
+.table-container th, .table-container td { padding: 8px; border: 1px solid #333; }
+.table-container th { background: #007bff; color: white; }
+.table-container tr:nth-child(even) { background: #222; }
+.table-container tr:nth-child(odd) { background: #1c1c1c; }
+
+/* Redirect button */
+.redirect-btn { margin-top: 10px; width: 100%; padding: 10px; border-radius: 8px; background: linear-gradient(135deg, #10b981, #3b82f6); color: #fff; font-weight: 600; cursor: pointer; border: none; transition: all 0.3s ease; }
+.redirect-btn:hover { transform: scale(1.05); }
+
+/* Map */
+.map-section { width: 100%; height: 100%; }
+.map { width: 100%; height: 100%; border-radius: 10px; filter: brightness(0.8); }
+
+/* Right Panel */
+.right-panel { background: #1e1e1e; position: relative; width: 100%; height: 100%; border-left: 1px solid #333; overflow: hidden; }
+.right-panel .satellite { position: absolute; top: 120px; right: 180px; width: 160px; animation: float 6s ease-in-out infinite; }
+.right-panel .plane { position: absolute; bottom: 180px; left: 40px; width: 200px; animation: float 8s ease-in-out infinite reverse; }
+.right-panel .ground { position: absolute; bottom: 40px; right: 40px; width: 180px; animation: float 7s ease-in-out infinite; }
+
+/* Laser beam animation */
+.laser {
+  position: absolute;
+  width: 4px;
+  background: #0ff;
+  box-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+  border-radius: 2px;
+  animation-fill-mode: forwards;
+}
+.aircraft-to-satellite {
+  left: 140px;
+  bottom: 260px;
+  height: 0;
+  animation: laser1 3s linear forwards;
+}
+.satellite-to-ground {
+  right: 260px;
+  top: 200px;
+  height: 0;
+  animation: laser2 3s linear 3s forwards; /* delay 3s */
 }
 
-.selector {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+@keyframes laser1 {
+  0% { height: 0; }
+  100% { height: 180px; }
+}
+@keyframes laser2 {
+  0% { height: 0; }
+  100% { height: 160px; }
 }
 
-.selector select,
-.selector button {
-  padding: 10px;
-  border: 1px solid #333;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: #2a2a2a;
-  color: #e0e0e0;
-}
-
-.selector select:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 6px #007bff44;
-}
-
-.selector button {
-  background: #007bff;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.selector button:disabled {
-  background: #555;
-  cursor: not-allowed;
-}
-
-.selector button:hover:not(:disabled) {
-  background: #0056b3;
-}
-
-/* Table styling */
-.table-container {
-  background: #1a1a1a;
-  padding: 12px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
-}
-
-.table-container h3 {
-  margin-bottom: 10px;
-  font-size: 1.2rem;
-  color: #e0e0e0;
-}
-
-.table-container table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: center;
-  font-size: 0.95rem;
-}
-
-.table-container th,
-.table-container td {
-  padding: 8px;
-  border: 1px solid #333;
-}
-
-.table-container th {
-  background: #007bff;
-  color: white;
-}
-
-.table-container tr:nth-child(even) {
-  background: #222;
-}
-
-.table-container tr:nth-child(odd) {
-  background: #1c1c1c;
-}
-
-/* Map styling */
-.map-section {
-  width: 100%;
-  height: 100%;
-}
-
-.map {
-  width: 100%;
-  height: 100%;
-  border-radius: 0;
-  filter: brightness(0.9); /* make map darker */
-}
+/* Floating animation */
+@keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
