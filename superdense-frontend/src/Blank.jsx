@@ -14,7 +14,7 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import axios from "axios";
-import "./AircraftNavigation.css";
+import "./Blank.css";
 import { useNavigate } from "react-router-dom";
 
 // Fix default marker icons
@@ -143,10 +143,10 @@ export default function AircraftNavigation() {
   };
 
   return (
-    <div className="aircraft-navigation">
-      <div className="sidebar">
+    <div className="aircraft-navigations">
+      <div className="sidebar1">
         <h2>Flight Navigation</h2>
-        <div className="selector">
+        <div className="selector1">
           <select
             value={selectedIcao24}
             onChange={(e) => setSelectedIcao24(e.target.value)}
@@ -167,7 +167,7 @@ export default function AircraftNavigation() {
         </div>
 
         {flightData && flightData.last_predicted && (
-          <div className="table-container">
+          <div className="table-container1">
             <h3>Predicted Point</h3>
             <table>
               <thead>
@@ -188,14 +188,14 @@ export default function AircraftNavigation() {
               </tbody>
             </table>
 
-            <button className="redirect-btn" onClick={handlePerformSDC}>
+            <button className="redirect-btn1" onClick={handlePerformSDC}>
               Perform Superdense Coding
             </button>
           </div>
         )}
       </div>
 
-      <div className="map-section">
+      <div className="map-section1 ">
         <MapContainer center={[20, 78]} zoom={5} className="map">
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 

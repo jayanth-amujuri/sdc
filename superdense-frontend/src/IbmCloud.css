@@ -1,150 +1,237 @@
-/* General page background to match your project theme */
+/* General page background with subtle gradient */
 .ibm-cloud-page {
-  font-family: "Orbitron", sans-serif;
-  background-color: #0a0a1f; /* Dark background */
-  color: #e0e0e0; /* Light text */
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(180deg, #0f172a 0%, #0d121e 100%);
+  color: #d1d5db;
   min-height: 100vh;
-  padding: 20px;
+  padding: 40px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
 /* Title */
 .ibm-cloud-page h1 {
-  margin-bottom: 30px;
-  color: #00ffff;
+  margin-bottom: 40px;
+  color: #e2e8f0;
   text-align: center;
-  text-shadow: 0 0 5px #00ffff;
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 /* SDC form container */
 .sdc-form {
-  background-color: #111133;
-  padding: 25px 35px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-  width: 380px;
-  margin-bottom: 30px;
+  background: rgba(30, 41, 59, 0.85); /* More opaque frosted glass */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 35px;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 40px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 24px;
+  border: 1px solid rgba(71, 85, 105, 0.5);
 }
 
 /* Display-only fields */
 .display-field {
   display: flex;
   justify-content: space-between;
-  font-size: 16px;
-  background-color: #0d0d2a;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid #00ffff50;
+  align-items: center;
+  font-size: 1.1rem;
+  background-color: rgba(45, 53, 67, 0.95);
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(156, 163, 175, 0.4);
   font-weight: 500;
+  color: #e2e8f0;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.display-field label {
+  font-weight: 600;
+  color: #94a3b8;
 }
 
 /* Button */
 .send-btn {
-  background-color: #00ffff;
-  color: #0a0a1f;
+  background: linear-gradient(135deg, #4338ca, #3b82f6);
+  color: #ffffff;
   border: none;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 18px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  text-align: center;
+  font-size: 1.15rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-.send-btn:hover {
-  background-color: #00cccc;
+.send-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  filter: brightness(1.15);
+}
+
+.send-btn:disabled {
+  background: rgba(75, 85, 99, 0.7);
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* Error display */
 .error {
-  color: #ff5555;
-  font-weight: bold;
-  margin-top: 15px;
+  color: #fca5a5;
+  font-weight: 600;
+  margin-top: 25px;
   text-align: center;
+  background-color: rgba(220, 38, 38, 0.3);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #ef4444;
 }
 
 /* SDC result container */
 .sdc-result {
-  background-color: #111133;
-  padding: 25px 35px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-  width: 600px;
-  margin-bottom: 30px;
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 35px;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 40px;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+}
+.sdc-result h2 {
+  font-size: 2rem;
+  margin-bottom: 25px;
+  color: #e2e8f0;
+  text-align: center;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.sdc-result p {
+  margin: 12px 0;
+  line-height: 1.6;
+}
+.sdc-result p b {
+  color: #94a3b8;
 }
 
 /* Table for SDC rounds */
 .rounds-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
+  margin-top: 25px;
+  background-color: #1f2937;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
 }
 
 .rounds-table th,
 .rounds-table td {
-  border: 1px solid #00ffff50;
-  padding: 10px;
+  border: none;
+  padding: 15px;
   text-align: center;
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 .rounds-table th {
-  background-color: #0d0d2a;
-  color: #00ffff;
+  background: #1d4ed8;
+  color: white;
   font-weight: 600;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
 }
 
 .rounds-table td {
-  background-color: #0a0a1f;
+  background: #111827;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.rounds-table tr:last-child td {
+  border-bottom: none;
 }
 
 /* Progress section */
 .progress-section {
-  background-color: #111133;
-  width: 380px;
-  padding: 20px 25px;
-  border-radius: 12px;
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
-  margin-bottom: 30px;
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width: 100%;
+  max-width: 500px;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  margin-bottom: 40px;
+  border: 1px solid rgba(71, 85, 105, 0.5);
 }
 
 .progress-section h3 {
-  margin-bottom: 10px;
-  color: #00ffff;
+  margin-bottom: 20px;
+  color: #e2e8f0;
   text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .progress-section ul {
   list-style: none;
   padding-left: 0;
-  font-size: 14px;
-  max-height: 200px;
+  font-size: 1rem;
+  max-height: 300px;
   overflow-y: auto;
 }
 
 .progress-section li {
-  margin-bottom: 5px;
-  padding: 4px 8px;
-  background-color: #0d0d2a;
-  border-radius: 4px;
-  border: 1px solid #00ffff50;
+  margin-bottom: 10px;
+  padding: 12px 16px;
+  background-color: rgba(45, 53, 67, 0.95);
+  border-radius: 10px;
+  border: 1px solid rgba(156, 163, 175, 0.4);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
 /* ASCII circuit display */
 .circuit-ascii {
-  background-color: #0a0a1f;
-  color: #0f0;
-  padding: 10px;
-  margin-bottom: 15px;
+  background-color: #111827;
+  color: #10b981;
+  padding: 20px;
+  margin-bottom: 25px;
   font-family: monospace;
-  font-size: 0.9rem;
-  border-radius: 6px;
+  font-size: 0.95rem;
+  border-radius: 12px;
   overflow-x: auto;
-  border: 1px solid #00ffff50;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .ibm-cloud-page h1 {
+    font-size: 2rem;
+  }
+  .sdc-form, .sdc-result, .progress-section {
+    padding: 25px;
+  }
+  .display-field, .send-btn, .progress-section li {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ibm-cloud-page {
+    padding: 20px 10px;
+  }
+  .sdc-form, .sdc-result, .progress-section {
+    padding: 20px;
+    border-radius: 16px;
+  }
 }
