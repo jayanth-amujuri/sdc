@@ -1,11 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import aircraftImg from "./assets/aircraft.png";
-import groundImg from "./assets/ground.png";
-import Blank from './Blank';
-import AircraftNavigation from './AircraftNavigation';
-
 
 // Load GSAP dynamically from CD
 const GsapLoader = ({ onReady }) => {
@@ -31,14 +26,15 @@ const GsapLoader = ({ onReady }) => {
 export default function HomePage() {
   const navigate = useNavigate();
   const [gsapReady, setGsapReady] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(false);
+  const [isEntangled, setIsEntangled] = useState(false);
+  const [message, setMessage] = useState(null);
 
   const satelliteRef = useRef(null);
   const planeRef = useRef(null);
   const groundRef = useRef(null);
   const laserBeam1Ref = useRef(null);
   const laserBeam2Ref = useRef(null);
-  const laserBeam3Ref = useRef(null); // NEW beam
+  const laserBeam3Ref = useRef(null);
   const simulationAreaRef = useRef(null);
 
   const handleCreateEntanglement = () => {
@@ -46,6 +42,10 @@ export default function HomePage() {
       console.error("GSAP is not ready yet.");
       return;
     }
+    
+    // Disable button during animation
+    setIsEntangled(false); 
+    setMessage(null);
 
     if (!satelliteRef.current || !planeRef.current || !groundRef.current || !simulationAreaRef.current) {
       console.error("One or more refs are not set.");
@@ -77,121 +77,67 @@ export default function HomePage() {
     
     const tl = gsap.timeline({
       onComplete: () => {
-        setSuccessMessage(true);
-        setTimeout(() => setSuccessMessage(false), 3000);
+        setIsEntangled(true);
+        setMessage("Photons is transfered from the satellite to the aircraft and groundstation");
       }
     });
 
+    // Reset beams
+    tl.set([laserBeam1, laserBeam2, laserBeam3], { opacity: 0 });
+
     // Laser: Satellite → Plane
-    laserBeam1.setAttribute('stroke', 'url(#beam-gradient)');
     tl.set(laserBeam1, {
       attr: { x1: satelliteX, y1: satelliteY, x2: satelliteX, y2: satelliteY },
-      opacity: 1,
-      'stroke-dashoffset': 1000,
-      'stroke-dasharray': 1000
+      opacity: 0,
     });
     tl.to(laserBeam1, {
       attr: { x2: planeX, y2: planeY },
-      duration: 3,
-      ease: 'power2.inOut',
-      onStart: () => {
-        gsap.to(laserBeam1, {
-          repeat: 8,
-          yoyo: true,
-          duration: 0.14,
-          opacity: 0.95,
-          boxShadow: "0 0 40px #00eaff, 0 0 80px #ff00cc"
-        });
-      },
-      onUpdate: function() {
-        const progress = this.progress();
-        const grad = document.getElementById('beam-gradient');
-        if (grad) grad.setAttribute('x1', `${progress * 100}%`);
-      }
-    })
-    .to(laserBeam1, {
-        'stroke-dashoffset': 0,
-        duration: 2,
-        ease: 'power2.out'
-    }, "-=2")
-    .to(laserBeam1, {
-        opacity: 0,
-        duration: 0.4
-    });
-
-    // Laser: Satellite → Ground
-    laserBeam2.setAttribute('stroke', 'url(#beam-gradient)');
-    tl.set(laserBeam2, {
-        attr: { x1: satelliteX, y1: satelliteY, x2: satelliteX, y2: satelliteY },
-        opacity: 1,
-        'stroke-dashoffset': 1000,
-        'stroke-dasharray': 1000
-      }, "-=2"); 
-    tl.to(laserBeam2, {
-        attr: { x2: groundX, y2: groundY },
-        duration: 2,
-        ease: 'power2.inOut',
-        onStart: () => {
-          gsap.to(laserBeam2, {
-            repeat: 8,
-            yoyo: true,
-            duration: 0.14,
-            opacity: 0.95,
-            boxShadow: "0 0 40px #ff00cc, 0 0 80px #00eaff"
-          });
-        },
-        onUpdate: function() {
-          const progress = this.progress();
-          const grad = document.getElementById('beam-gradient');
-          if (grad) grad.setAttribute('x1', `${progress * 100}%`);
-        }
-    }, "<")
-    .to(laserBeam2, {
-        'stroke-dashoffset': 0,
-        duration: 2,
-        ease: 'power2.out'
-    }, "-=2")
-    .to(laserBeam2, {
-        opacity: 0,
-        duration: 0.4
-    });
-
-    // NEW: After entanglement, show Plane → Ground correlation beam
-    laserBeam3.setAttribute('stroke', 'url(#beam-gradient)');
-    tl.set(laserBeam3, {
-      attr: { x1: planeX, y1: planeY, x2: planeX, y2: planeY },
+      duration: 2,
+      ease: 'power2.out',
       opacity: 1,
-      'stroke-dashoffset': 1000,
-      'stroke-dasharray': 1000
-    }, "+=0.5"); 
-    tl.to(laserBeam3, {
+      filter: 'drop-shadow(0 0 10px #00eaff)',
+    });
+    
+    // Laser: Satellite → Ground
+    tl.set(laserBeam2, {
+      attr: { x1: satelliteX, y1: satelliteY, x2: satelliteX, y2: satelliteY },
+      opacity: 0,
+    }, "<"); // Start at the same time as the first beam
+    tl.to(laserBeam2, {
       attr: { x2: groundX, y2: groundY },
       duration: 2,
-      ease: 'power2.inOut',
-      onStart: () => {
-        gsap.to(laserBeam3, {
-          repeat: 8,
-          yoyo: true,
-          duration: 0.14,
-          opacity: 0.95,
-          boxShadow: "0 0 40px #00eaff, 0 0 80px #ff00cc"
-        });
-      },
-      onUpdate: function() {
-        const progress = this.progress();
-        const grad = document.getElementById('beam-gradient');
-        if (grad) grad.setAttribute('x1', `${progress * 100}%`);
-      }
-    })
-    .to(laserBeam3, {
-      'stroke-dashoffset': 0,
-      duration: 3,
-      ease: 'power2.out'
-    }, "-=2")
-    .to(laserBeam3, {
+      ease: 'power2.out',
+      opacity: 1,
+      filter: 'drop-shadow(0 0 10px #ff00cc)',
+    }, "<");
+
+    // Fade out initial beams
+    tl.to([laserBeam1, laserBeam2], {
       opacity: 0,
-      duration: 0.4
+      duration: 0.5,
     });
+
+    // Final Correlated Beam: Plane → Ground
+    tl.set(laserBeam3, {
+      attr: { x1: planeX, y1: planeY, x2: planeX, y2: planeY },
+      opacity: 0,
+    });
+    tl.to(laserBeam3, {
+      attr: { x2: groundX, y2: groundY },
+      duration: 2.5,
+      ease: 'power4.out',
+      opacity: 1,
+      filter: 'drop-shadow(0 0 10px #ffea00)',
+      onStart: () => {
+        gsap.fromTo(laserBeam3, 
+          { 'stroke-dasharray': 2000, 'stroke-dashoffset': 2000 },
+          { 'stroke-dashoffset': 0, duration: 2.5, ease: 'linear' }
+        );
+      }
+    }, "+=0.2");
+
+    // Clean up
+    tl.to(laserBeam3, { opacity: 0, duration: 0.5 }, "+=0.5");
   };
 
   const handleNext = () => {
@@ -249,6 +195,12 @@ export default function HomePage() {
           transition: all 0.3s;
           width: 90%;
         }
+        
+        .nav-button:disabled {
+          background: #4b5563;
+          cursor: not-allowed;
+          opacity: 0.7;
+        }
 
         .simulation-area {
           flex-grow: 1;
@@ -301,27 +253,28 @@ export default function HomePage() {
         }
 
         .laser-beam {
-          stroke: #ff9100ff;
-          stroke-width: 4px;
+          stroke: white;
+          stroke-width: 8px;
           stroke-linecap: round;
-          filter: drop-shadow(0 0 8px #ff8000ff) drop-shadow(0 0 16px #ff8400ff);
+          filter: drop-shadow(0 0 8px #ff8000ff);
           opacity: 1;
         }
 
-        .success-message {
+        .info-message {
           position: absolute;
           top: 15px;
           left: 50%;
           transform: translateX(-50%);
           background: rgba(0, 0, 0, 0.7);
-          color: #00ff00;
+          color: #10b981;
           font-size: clamp(1rem, 2vw, 1.4rem);
           font-weight: bold;
           padding: 0.8rem 1.6rem;
           border-radius: 12px;
-          box-shadow: 0 0 20px rgba(0,255,0,0.6);
+          box-shadow: 0 0 20px rgba(0, 185, 129, 0.6);
           z-index: 20;
           animation: fadeIn 0.5s ease-out;
+          text-align: center;
         }
 
         @keyframes fadeIn {
@@ -351,7 +304,7 @@ export default function HomePage() {
             onClick={handleCreateEntanglement}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            disabled={!gsapReady}
+            disabled={!gsapReady || message}
           >
             Create Entanglement
           </motion.button>
@@ -360,6 +313,7 @@ export default function HomePage() {
             onClick={handleNext}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            disabled={!isEntangled}
           >
             Communication
           </motion.button>
@@ -375,13 +329,13 @@ export default function HomePage() {
           <img
             ref={planeRef}
             className="emoji plane"
-            src={aircraftImg}
+            src="https://i.ibb.co/S6w87zP/aircraft.png"
             alt="Aircraft"
           />
           <img
             ref={groundRef}
             className="emoji ground"
-            src={groundImg}
+            src="https://i.ibb.co/3k5fS44/ground.png"
             alt="Ground Station"
           />
 
@@ -399,16 +353,16 @@ export default function HomePage() {
                 <stop offset="25%" stopColor="#00ff6a" />
                 <stop offset="50%" stopColor="#ffea00" />
                 <stop offset="75%" stopColor="#ff00ea" />
-                <stop offset="10%" stopColor="#ff0000" />
+                <stop offset="100%" stopColor="#ff0000" />
               </linearGradient>
             </defs>
-            <line ref={laserBeam1Ref} stroke="url(#beam-gradient)" strokeWidth="8" strokeLinecap="round" filter="url(#beam-glow)" opacity="1" />
-            <line ref={laserBeam2Ref} stroke="url(#beam-gradient)" strokeWidth="8" strokeLinecap="round" filter="url(#beam-glow)" opacity="1" />
-            <line ref={laserBeam3Ref} stroke="url(#beam-gradient)" strokeWidth="8" strokeLinecap="round" filter="url(#beam-glow)" opacity="1" />
+            <line ref={laserBeam1Ref} stroke="url(#beam-gradient)" strokeWidth="8" strokeLinecap="round" filter="url(#beam-glow)" opacity="0" />
+            <line ref={laserBeam2Ref} stroke="url(#beam-gradient)" strokeWidth="8" strokeLinecap="round" filter="url(#beam-glow)" opacity="0" />
+            <line ref={laserBeam3Ref} stroke="#e2e8f0" strokeWidth="8" strokeLinecap="round" filter="url(#beam-glow)" opacity="0" />
           </svg>
 
-          {successMessage && (
-            <div className="success-message">✨ Entanglement Successful! ✨</div>
+          {message && (
+            <div className="info-message">{message}</div>
           )}
         </div>
       </div>

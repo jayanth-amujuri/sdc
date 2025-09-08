@@ -1,0 +1,181 @@
+/* === Main container for sidebar + map === */
+.aircraft-navigations {
+    display: grid;
+    grid-template-columns: 3fr 7fr; /* Adjusted for 30% sidebar, 70% map */
+    height: 100vh; /* Changed to full viewport height */
+    width: 100vw; /* Changed to full viewport width to remove gap */
+    font-family: 'Inter', sans-serif; /* Changed font to Inter */
+    background: #111827; /* Darker, professional navy background */
+    color: #d1d5db; /* Lighter gray text */
+    overflow: hidden;
+  }
+  
+  /* === Sidebar styling === */
+  .sidebar1 {
+    background: rgba(31, 41, 55, 0.7); /* Frosted glass effect */
+    backdrop-filter: blur(15px) saturate(180%);
+    -webkit-backdrop-filter: blur(15px) saturate(180%);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.1),
+                4px 0 20px rgba(0, 0, 0, 0.4);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  /* === Sidebar heading === */
+  .sidebar1 h2 {
+    margin: 0;
+    font-size: 1.8rem; /* Larger heading */
+    font-weight: 700;
+    color: #e5e7eb;
+    text-align: center;
+    letter-spacing: 0.8px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  /* === Dropdown + button container === */
+  .selector1 {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .selector1 select {
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: rgba(45, 53, 67, 0.9);
+    color: #e2e8f0;
+    border: 1px solid rgba(156, 163, 175, 0.3);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .selector1 select:hover {
+      border-color: #60a5fa;
+  }
+  .selector1 select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+  }
+  
+  /* === Primary button (Show Path) === */
+  .selector1 button {
+    padding: 14px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4338ca, #3b82f6);
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+  .selector1 button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    filter: brightness(1.1);
+  }
+  .selector1 button:disabled {
+    background: rgba(75, 85, 99, 0.7);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  
+  /* === Table container === */
+  .table-container1 {
+    background: rgba(20, 26, 40, 0.9);
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  .table-container1 h3 {
+    margin-bottom: 15px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: center;
+    color: #e5e7eb;
+  }
+  .table-container1 table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    font-size: 0.95rem;
+    background: #272c3d;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .table-container1 th, .table-container1 td {
+    padding: 12px;
+    border: none;
+  }
+  .table-container1 th {
+    background: #1d4ed8;
+    color: white;
+    font-weight: 600;
+  }
+  .table-container1 tr:nth-child(even) {
+    background: #273041;
+  }
+  .table-container1 tr:nth-child(odd) {
+    background: #1f2937;
+  }
+  
+  /* === Secondary button (Perform SDC) === */
+  .redirect-btn1 {
+    margin-top: 20px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #10b981, #3b82f6);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+  .redirect-btn1:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    filter: brightness(1.05);
+  }
+  
+  /* === Map section === */
+  .map-section1 {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .map {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    filter: brightness(0.9) saturate(0.95);
+  }
+  
+  /* === Responsive layout === */
+  @media (max-width: 1200px) {
+    .aircraft-navigations {
+      grid-template-columns: 1fr;
+      grid-template-rows: 60vh auto; /* 60% map, rest for sidebar */
+    }
+    .sidebar1 {
+      width: 100%;
+      height: auto;
+      order: 2;
+      border-right: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .map-section1 {
+      order: 1;
+      height: 100%;
+    }
+  }
+  
